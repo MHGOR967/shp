@@ -13,7 +13,7 @@ REQUIRED_CHANNEL = "-1002521415297"
 CHANNEL_LINK = "https://t.me/DA4K711"
 BOT_USERNAME = "@FetchUIBot"
 
-# قاعدة بيانات مؤقتة لتخزين مشتركي الـ VIP (في الذاكرة)
+# قاعدة بيانات مؤقتة لتخزين مشتركي الـ VIP
 vip_users = set()
 
 # ===== 1. خادم الويب الوهمي لبورت Render =====
@@ -75,7 +75,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard) if keyboard else None
     await update.message.reply_text(welcome_msg, reply_markup=reply_markup, parse_mode="Markdown")
 
-# ===== معالج أزرار الكอลباك =====
+# ===== معالج أزرار الكولباك =====
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -110,23 +110,22 @@ async def vip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def send_invoice(message, context):
     chat_id = message.chat_id
     title = "اشتراك VIP الشامل (سحب غير محدود)"
-    description = "احصل على صلاحيات سحب التصاميم، الصور، السورس كود الكامل، ومعلومات السيرفر والثغرات المتقدمة عبر بوت {BOT_USERNAME}"
+    description = f"احصل على صلاحيات سحب التصاميم، الصور، السورس كود الكامل، ومعلومات السيرفر والثغرات المتقدمة عبر {BOT_USERNAME}"
     payload = "vip_subscription_payload"
-    currency = "XTR"  # عملة نجوم تيليجرام
-    prices = [LabeledPrice("ترقية VIP", 10)]  # السعر 10 نجوم
+    currency = "XTR"
+    prices = [LabeledPrice("ترقية VIP", 10)]
 
     await context.bot.send_invoice(
         chat_id=chat_id,
         title=title,
         description=description,
         payload=payload,
-        provider_token="",  # فارغة لعملة النجوم Telegram Stars
+        provider_token="",
         currency=currency,
         prices=prices,
         start_parameter="vip-subscription"
     )
 
-# معالج مراجعة الدفع قبل تأكيده
 async def pre_checkout(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.pre_checkout_query
     if query.invoice_payload == "vip_subscription_payload":
@@ -134,12 +133,11 @@ async def pre_checkout(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await query.answer(ok=False, error_message="حدث خطأ في عملية الدفع، حاول مرة أخرى.")
 
-# معالج نجاح الدفع وتفعيل الـ VIP
 async def successful_payment(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     vip_users.add(user_id)
     await update.message.reply_text(
-        f"🎉 **مبروك يا فخم! تم ترقية حسابك إلى VIP بنجاح تامة!** 💎🔥\n\n"
+        f"🎉 **مبروك يا فخم! تم ترقية حسابك إلى VIP بنجاح تام!** 💎🔥\n\n"
         f"أصبح بإمكانك الآن سحب التصاميم، الصور، الفيديوهات، والكود المصدري بالكامل بدون أي قيود.\n"
         f"🤖 الحقوق: {BOT_USERNAME}"
     )
@@ -225,21 +223,21 @@ async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await processing_msg.edit_text(f"❌ فشل في الاتصال بالهدف أو أن الموقع غير متوفر حالياً. | {BOT_USERNAME}")
             return
 
-        # ملف السورس كود مع الحقوق في كل مكان
+        # ملف السورس كود مع الحقوق في كل مكان (بداية، منتصف، نهاية) بمعالجة UTF-8 الآمنة
         code_filename = "الكود_المصدري_المسحوب.txt"
         with open(code_filename, "wb") as f:
-            f.write(f"# {BOT_USERNAME} - بداية الملف المصحوب\n".encode())
-            f.write(b"تم سحب الموقع والكود بالكامل - لا مجال للهروب 💀\n")
-            f.write(f"# {BOT_USERNAME} - منتصف الملف والكود\n".encode())
+            f.write(f"# {BOT_USERNAME} - بداية الملف المسحوب\n".encode('utf-8'))
+            f.write(f"# {BOT_USERNAME} - تم سحب الموقع والكود بالكامل - لا مجال للهروب 💀\n".encode('utf-8'))
+            f.write(f"# {BOT_USERNAME} - منتصف الملف والكود\n".encode('utf-8'))
             f.write(response_obj.content)
-            f.write(f"\n# {BOT_USERNAME} - نهاية الملف المصحوب".encode())
+            f.write(f"\n# {BOT_USERNAME} - نهاية الملف المسحوب".encode('utf-8'))
 
         # ملف تقرير السيرفر والثغرات
         report_filename = "تقرير_السيرفر_والثغرات.txt"
         with open(report_filename, "w", encoding="utf-8") as repf:
             repf.write(server_report)
 
-        # إذا كان مستخدم VIP، نقوم بمحاكاة سحب إضافي متقدم للتصاميم والصور
+        # إذا كان مستخدم VIP، سحب الأصول والتصاميم
         vip_extra_filename = "أصول_وتصاميم_إضافية_VIP.txt"
         if is_vip:
             with open(vip_extra_filename, "w", encoding="utf-8") as vef:
@@ -260,9 +258,8 @@ async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"🔥 **تم سحب محتوى الموقع وتقارير السيرفر وثغراته بنجاح تام!** 💀\n\n"
             f"📊 **ملخص تقرير السيرفر:**\n"
             f"• **الحقوق:** {BOT_USERNAME}\n"
-            f"• **نوع السيرفر:** متاح في الملف والتقرير أدناه\n"
             f"• **مستوى الصلاحية:** {'⭐ VIP (سحب شامل للتصاميم والصور)' if is_vip else '👤 عادّي'}\n\n"
-            f"<code>{server_report[:1500]}</code>\n\n"
+            f"<code>{server_report[:1200]}</code>\n\n"
             f"🤖 **جميع الحقوق محفوظة لصالح:** {BOT_USERNAME}"
         )
         await update.message.reply_text(chat_text, parse_mode="HTML")
@@ -303,4 +300,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
