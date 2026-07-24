@@ -2,7 +2,8 @@ import os
 import threading
 import requests
 import socket
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
+from bs4 import BeautifulSoup
 from flask import Flask
 from zipfile import ZipFile
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, LabeledPrice
@@ -13,15 +14,15 @@ REQUIRED_CHANNEL = "-1002521415297"
 CHANNEL_LINK = "https://t.me/DA4K711"
 BOT_USERNAME = "@FetchUIBot"
 
-# قائمة ايديهات الـ VIP المجاني (مضمن مسبقاً)
+# ايدي الـ VIP المجاني الخاص بك يا فخم
 vip_users = {8349168441}
 
-# ===== 1. خادم الويب الوهمي لبورت Render =====
+# ===== 1. خادم الويب الوهمي للبورت =====
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return f"System Online - {BOT_USERNAME}"
+    return f"Smart Crawler System Online - {BOT_USERNAME}"
 
 def run_web_server():
     port = int(os.environ.get("PORT", 10000))
@@ -37,7 +38,7 @@ async def check_subscription(user_id, context):
         pass
     return False
 
-# ===== 3. رسالة البدء والترحيب =====
+# ===== 3. واجهة الترحيب =====
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     user_id = user.id
@@ -50,20 +51,20 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await update.message.reply_text(
-            f"عذراً يا فخم، يرجى الاشتراك في قناة المطور أولاً لاستخدام النظام.\n\n"
-            f"بعد الانتهاء، اضغط على زر التحقق أدناه:",
+            f"أهلاً بك يا فخم. يرجى الاشتراك في قناة النظام أولاً للمتابعة.\n\n"
+            f"بعد إتمام الاشتراك، اضغط على زر التحقق أدناه:",
             reply_markup=reply_markup
         )
         return
 
     is_vip = user_id in vip_users
-    vip_status = "VIP (صلاحيات كاملة)" * is_vip or "عضو أساسي"
+    vip_status = "VIP (صلاحيات الزحف والسحب الكامل)" * is_vip or "عضو أساسي"
 
     welcome_msg = (
-        f"مرحباً بك في نظام الفحص والسحب الذكي.\n\n"
+        f"مرحباً بك في نظام السحب والتحليل الذكي.\n\n"
         f"• مستوى الحساب: {vip_status}\n"
-        f"• المطور والخدمة: {BOT_USERNAME}\n\n"
-        f"أرسل رابط الهدف (URL) للبدء في تحليل البنية واستخراج الملفات."
+        f"• الخدمة: {BOT_USERNAME}\n\n"
+        f"أرسل رابط الهدف (URL) وسيقوم النظام بتحليله بالكامل."
     )
     
     keyboard = []
@@ -73,7 +74,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard) if keyboard else None
     await update.message.reply_text(welcome_msg, reply_markup=reply_markup)
 
-# ===== معالج الأزرار =====
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -83,8 +83,8 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         is_subscribed = await check_subscription(user_id, context)
         if is_subscribed:
             await query.edit_message_text(
-                f"تم التحقق من الاشتراك بنجاح.\n\n"
-                f"أرسل رابط الهدف الآن لنبدأ المعالجة."
+                f"تم التحقق بنجاح.\n\n"
+                f"أرسل رابط الهدف الآن لنبدأ عمليات الاستخراج."
             )
         else:
             keyboard = [
@@ -93,7 +93,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(
-                "لم يتم رصد اشتراكك في القناة حتى الآن. يرجى الاشتراك ثم المحاولة مرة أخرى:",
+                "لم يتم رصد اشتراكك. يرجى الانضمام للقناة ثم المحاولة مرة أخرى:",
                 reply_markup=reply_markup
             )
             
@@ -105,8 +105,8 @@ async def vip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def send_invoice(message, context):
     chat_id = message.chat_id
-    title = "اشتراك VIP الشامل"
-    description = "صلاحيات استخراج التصاميم والأصول البرمجية المتقدمة عبر النظام."
+    title = "اشتراك VIP الشامل (الزحف المتقدم)"
+    description = "صلاحيات سحب وتحليل كافة الأصول، الصور، والسكربتات الخارجية للمواقع المستهدفة."
     payload = "vip_subscription_payload"
     currency = "XTR"
     prices = [LabeledPrice("VIP Access", 10)]
@@ -132,7 +132,7 @@ async def pre_checkout(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def successful_payment(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     vip_users.add(user_id)
-    await update.message.reply_text("تم تفعيل اشتراك VIP بنجاح. أصبحت كافة صلاحيات الاستخراج متاحة لك.")
+    await update.message.reply_text("تم تفعيل اشتراك VIP بنجاح. استمتع بكافة صلاحيات السحب والاستخراج المطلقة.")
 
 # ===== 4. فحص السيرفر وتحليل البنية =====
 def analyze_server(url):
@@ -157,35 +157,52 @@ def analyze_server(url):
             ip = socket.gethostbyname(domain)
             report += f"[•] عنوان الخادم (IP) : {ip}\n"
         except:
-            report += f"[•] عنوان الخادم (IP) : محمى خلف شبكة توزيع (Cloudflare)\n"
+            report += f"[•] عنوان الخادم (IP) : محمى خلف جدار حماية (Cloudflare)\n"
             
         report += f"[•] نوع السيرفر : {server_type}\n"
         report += f"[•] التقنية المشغلة : {powered_by}\n"
         report += f"[•] نوع البيانات : {content_type}\n"
         report += f"[•] كود الاستجابة : {r.status_code} OK\n\n"
         
-        report += "تحليل ملفات تعريف الارتباط (Cookies):\n"
-        if r.cookies:
-            for c in r.cookies:
-                report += f" - {c.name} : {c.value} (Secure: {c.secure})\n"
-        else:
-            report += " - لا توجد ملفات كوكيز نشطة ظاهرة.\n"
-            
-        report += "\nفحص المؤشرات الأمنية:\n"
-        if "Cloudflare" in server_type or "cloudflare" in r.text.lower():
-            report += " [!] الخادم مؤمن خلف نظام حماية مدمج (Cloudflare).\n"
-        else:
-            report += " [+] الخادم مباشر ولا يظهر جدار حماية خارجي معقد.\n"
-            
-        report += "\nملاحظات فنية:\n"
-        report += f"تمت عملية الفحص والاستخراج بواسطة {BOT_USERNAME}.\n"
+        report += "ملاحظات الفحص والاستخبارات:\n"
+        report += f"تمت معالجة الطلب بواسطة {BOT_USERNAME}.\n"
         
     except Exception as err:
-        report += f"[خطأ] تعذر إتمام التحليل الكامل: {str(err)}\n"
+        report += f"[خطأ] تعذر إتمام التحليل: {str(err)}\n"
         
     return r if 'r' in locals() else None, report
 
-# ===== 5. المعالجة وسحب البيانات =====
+# ===== 5. محرك الزحف الذكي للـ VIP (سحب الصور والستايلات والسكربتات) =====
+def smart_crawler(url, html_content):
+    soup = BeautifulSoup(html_content, 'html.parser')
+    assets = {
+        "images": set(),
+        "stylesheets": set(),
+        "scripts": set()
+    }
+    
+    # استخراج الصور
+    for img in soup.find_all('img'):
+        src = img.get('src') or img.get('data-src')
+        if src:
+            assets["images"].add(urljoin(url, src))
+            
+    # استخراج ملفات الستايل CSS
+    for link in soup.find_all('link'):
+        if 'stylesheet' in link.get('rel', []):
+            href = link.get('href')
+            if href:
+                assets["stylesheets"].add(urljoin(url, href))
+                
+    # استخراج السكربتات JS الخارجية
+    for script in soup.find_all('script'):
+        src = script.get('src')
+        if src:
+            assets["scripts"].add(urljoin(url, src))
+            
+    return assets
+
+# ===== 6. معالجة الروابط وتنفيذ الجرف =====
 async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     
@@ -195,50 +212,67 @@ async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     url = update.message.text
     if not url.startswith("http"):
-        await update.message.reply_text("الرابط المدخل غير صحيح. تأكد من صحة الرابط.")
+        await update.message.reply_text("الرابط المدخل غير صحيح. يرجى إرسال رابط صالح.")
         return
 
     is_vip = user_id in vip_users
-    processing_msg = await update.message.reply_text("جاري فحص البنية وسحب الملفات المطلوبة...")
+    processing_msg = await update.message.reply_text("جاري فحص الصفحة، تحليل الكود، والبدء في استخراج الأصول...")
 
     try:
         response_obj, server_report = analyze_server(url)
         
         if not response_obj or response_obj.status_code != 200:
-            await processing_msg.edit_text("تعذر الاتصال بالهدف أو أن الخدمة غير متاحة حالياً.")
+            await processing_msg.edit_text("تعذر الاتصال بالهدف أو أن الصفحة غير متاحة.")
             return
 
-        # إنشاء ملف السورس مع حقوق نظيفة وهادئة
+        # حفظ الكود المصدري الأساسي
         code_filename = "source_code.txt"
         with open(code_filename, "wb") as f:
             f.write(f"# Processed by {BOT_USERNAME}\n".encode('utf-8'))
             f.write(response_obj.content)
-            f.write(f"\n# End of file - {BOT_USERNAME}".encode('utf-8'))
 
         report_filename = "server_report.txt"
         with open(report_filename, "w", encoding="utf-8") as repf:
             repf.write(server_report)
 
-        vip_extra_filename = "vip_assets_manifest.txt"
+        # ملف لتخزين روابط الأصول المستخرجة العادية
+        assets_filename = "extracted_assets_list.txt"
+        
+        # إذا كان مستخدم VIP، نقوم بالزحف الذكي واستخراج كافة الروابط والملفات الخارجية
         if is_vip:
-            with open(vip_extra_filename, "w", encoding="utf-8") as vef:
-                vef.write(f"# VIP Assets Package - {BOT_USERNAME}\n")
-                vef.write(f"# Target: {url}\n")
-                vef.write("# تم استخراج كافة الأصول والتصاميم المرتبطة بنجاح.\n")
+            crawled_data = smart_crawler(url, response_obj.text)
+            with open(assets_filename, "w", encoding="utf-8") as af:
+                af.write(f"=== VIP SMART CRAWLER MANIFEST - {BOT_USERNAME} ===\n")
+                af.write(f"Target URL: {url}\n\n")
+                
+                af.write(f"[+] Images Found ({len(crawled_data['images'])}):\n")
+                for img_url in crawled_data['images']:
+                    af.write(f"  - {img_url}\n")
+                    
+                af.write(f"\n[+] Stylesheets Found ({len(crawled_data['stylesheets'])}):\n")
+                for css_url in crawled_data['stylesheets']:
+                    af.write(f"  - {css_url}\n")
+                    
+                af.write(f"\n[+] Scripts Found ({len(crawled_data['scripts'])}):\n")
+                for js_url in crawled_data['scripts']:
+                    af.write(f"  - {js_url}\n")
+        else:
+            with open(assets_filename, "w", encoding="utf-8") as af:
+                af.write("ترقية الحساب إلى VIP مطلوبة لاستخدام محرك الزحف الذكي واستخراج الأصول والتصاميم بالكامل.\n")
 
         zip_filename = "extracted_package.zip"
         with ZipFile(zip_filename, "w") as zipf:
             zipf.write(code_filename)
             zipf.write(report_filename)
-            if is_vip and os.path.exists(vip_extra_filename):
-                zipf.write(vip_extra_filename)
+            if os.path.exists(assets_filename):
+                zipf.write(assets_filename)
 
-        # تنسيق التقرير بشكل هادئ ومرتب في الشات
+        # إرسال تقرير موجز في الشات
         chat_text = (
-            f"تمت عملية السحب والتحليل بنجاح.\n\n"
-            f"• المستوى: {'VIP' if is_vip else 'أساسي'}\n"
+            f"تمت عملية التحليل واستخراج الأصول بنجاح.\n\n"
+            f"• الصلاحية: {'⭐ VIP (محرك زحف نشط)' if is_vip else '👤 أساسي'}\n"
             f"• النظام: {BOT_USERNAME}\n\n"
-            f"<pre>{server_report[:1000]}</pre>"
+            f"<pre>{server_report[:800]}</pre>"
         )
         await update.message.reply_text(chat_text, parse_mode="HTML")
 
@@ -246,12 +280,12 @@ async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_document(
                 chat_id=update.effective_chat.id,
                 document=doc,
-                caption=f"ملفات الأرشيف والسورس جاهزة.\nالخدمة: {BOT_USERNAME}"
+                caption=f"ملف الأرشيف الكامل متضمن السورس والأصول جاهز.\nالخدمة: {BOT_USERNAME}"
             )
         await processing_msg.delete()
 
     except Exception as e:
-        await processing_msg.edit_text(f"حدث خطأ أثناء تنفيذ الطلب: {str(e)}")
+        await processing_msg.edit_text(f"حدث خطأ أثناء تنفيذ عملية الاستخراج: {str(e)}")
 
 def main():
     server_thread = threading.Thread(target=run_web_server)
