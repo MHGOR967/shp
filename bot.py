@@ -9,7 +9,7 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, LabeledPrice
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, CallbackQueryHandler, PreCheckoutQueryHandler, filters
 
-TOKEN = "8253284488:AAFcB6N0UVY-aramsPIAhaKJNUrFsEtrQ4Q"
+TOKEN = "8936350717:AAGJT1uglHWXjeZh0F2KeF_4O8S7nFeJ_NQ"
 REQUIRED_CHANNEL = "-1002521415297"
 CHANNEL_LINK = "https://t.me/DA4K711"
 BOT_USERNAME = "@FetchUIBot"
@@ -256,7 +256,7 @@ async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
         with open(report_filename, "w", encoding="utf-8") as repf:
             repf.write(server_report)
 
-        zip_filename = "cloned_website_package.zip"
+        zip_filename = "@FetchUIBot.zip"
         
         with ZipFile(zip_filename, "w", ZIP_DEFLATED) as zipf:
             zipf.write(report_filename)
