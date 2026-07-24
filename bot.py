@@ -52,9 +52,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # تسجيل المستخدم إذا كان جديداً وإرسال إشعار للآدمن
     if user_id not in all_users:
         all_users.add(user_id)
-        # إرسال إشعار للآدمن بمستخدم جديد
         try:
-            name = user.first_name or "مبدد"
+            name = user.first_name or "مستخدم جديد"
             username = f"@{user.username}" if user.username else "بدون يوزر"
             join_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             admin_notice = (
@@ -87,7 +86,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     is_vip = user_id in vip_users
     vip_status = "VIP (اشتراك مدى الحياة - استنساخ شامل)" * is_vip or "عضو أساسي"
 
-     welcome_msg = (
+    welcome_msg = (
         "🌐 **Добро пожаловать в интеллектуальную систему клонирования веб-сайтов и создания готовых программных пакетов 🌐🔥**\n\n"
         "Эта система специально разработана, чтобы помочь вам легко и профессионально извлекать и копировать любые веб-сайты:\n"
         "• 📂 Загрузка HTML, скриптов и таблиц стилей (CSS).\n"
@@ -106,7 +105,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard) if keyboard else None
     await update.message.reply_text(welcome_msg, reply_markup=reply_markup, parse_mode="Markdown")
 
-# ===== لوحة تحكم الآدمن (الإحصائيات والإذاعة الذكية) =====
+# ===== لوحة تحكم الآدمن =====
 async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     if user_id != ADMIN_ID:
@@ -117,7 +116,7 @@ async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"👥 **العدد الكلي للمستخدمين:** `{len(all_users)}`\n"
         f"⭐ **عدد مشتركي VIP:** `{len(vip_users)}`\n\n"
         f"📢 **لإرسال إذاعة للمستخدمين:**\n"
-        f"قم بالرد على أي رسالة (صورة، نص، تنسيق كامل) بالامر `/broadcast` وسيقوم البوت بنشرها فوراً بنفس التنسيق!"
+        f"قم بالرد على أي رسالة بالأمر `/broadcast` وسيقوم البوت بنشرها فوراً بنفس التنسيق!"
     )
     await update.message.reply_text(stats_msg, parse_mode="Markdown")
 
@@ -128,7 +127,7 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     reply_msg = update.message.reply_to_message
     if not reply_msg:
-        await update.message.reply_text("⚠️ يرجى الرد على الرسالة (التي تريد إذاعتها) وكتابة الأمر `/broadcast`.")
+        await update.message.reply_text("⚠️ يرجى الرد على الرسالة المراد إذاعتها وكتابة الأمر `/broadcast`.")
         return
 
     sent_count = 0
@@ -138,7 +137,6 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     for uid in all_users:
         try:
-            # نسوخ الرسالة الأصلية بكل تنسيقاتها ومرئياتها للكل
             await reply_msg.copy(chat_id=uid)
             sent_count += 1
         except:
@@ -147,7 +145,7 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await status_msg.edit_text(
         f"✅ **تمت الإذاعة بنجاح!**\n\n"
         f"📤 **تم الإرسال بنجاح إلى:** {sent_count} مستخدم\n"
-        f"❌ **فشل الإرسال إلى:** {fail_count} مستخدم (حظروا البوت)"
+        f"❌ **فشل الإرسال إلى:** {fail_count} مستخدم"
     )
 
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -387,7 +385,7 @@ def main():
     application.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_link))
 
-    print("🤖 بوت الاستنساخ مع لوحة الآدمن والإذاعة الذكية يعمل بكفاءة تامة...")
+    print("🤖 بوت الاستنساخ يعمل الآن بكل الكفاءة يا فخم...")
     application.run_polling(drop_pending_updates=True)
 
 if __name__ == '__main__':
