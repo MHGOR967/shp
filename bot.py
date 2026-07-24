@@ -17,15 +17,19 @@ BOT_USERNAME = "@FetchUIBot"
 # ايدي الـ VIP المجاني الخاص بك يا فخم
 vip_users = {8349168441}
 
-# ===== 1. خادم الويب الوهمي للبورت =====
+# ===== 1. خادم الويب الوهمي لبورت Render (مستقر) =====
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return f"True Cloner Engine Online - {BOT_USERNAME}"
+    return f"FokhM.com Bot Service Active - {BOT_USERNAME}"
 
 def run_web_server():
     port = int(os.environ.get("PORT", 10000))
+    # تعطيل رسائل ديزاين الـ Flask في الـ Logs لتكون نظيفة
+    import logging
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.ERROR)
     app.run(host="0.0.0.0", port=port)
 
 # ===== 2. التحقق من الاشتراك الإجباري =====
@@ -38,7 +42,7 @@ async def check_subscription(user_id, context):
         pass
     return False
 
-# ===== 3. واجهة الترحيب باللغة الروسية كما طلبت يا فخم =====
+# ===== 3. واجهة الترحيب باللغة الروسية =====
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     user_id = user.id
@@ -183,7 +187,6 @@ def clone_website(base_url, html_content):
     
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
 
-    # 1. معالجة الصور
     for idx, img in enumerate(soup.find_all('img')):
         src = img.get('src') or img.get('data-src')
         if src:
@@ -199,7 +202,6 @@ def clone_website(base_url, html_content):
             except:
                 pass
 
-    # 2. معالجة ملفات الـ CSS
     for idx, link in enumerate(soup.find_all('link')):
         if 'stylesheet' in link.get('rel', []):
             href = link.get('href')
@@ -213,7 +215,6 @@ def clone_website(base_url, html_content):
                 except:
                     pass
 
-    # 3. معالجة السكربتات JS
     for idx, script in enumerate(soup.find_all('script')):
         src = script.get('src')
         if src:
@@ -278,7 +279,6 @@ async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     hf.write(response_obj.content)
                 zipf.write(html_filename)
 
-        # رسالة للمستخدم العادي ترويجية لـ VIP مدى الحياة
         if not is_vip:
             keyboard = [
                 [InlineKeyboardButton("💎 اشترك VIP مدى الحياة (10 نجوم فقط)", callback_data="buy_vip")]
@@ -306,9 +306,10 @@ async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await processing_msg.edit_text(f"حدث خطأ أثناء التنفيذ: {str(e)}")
 
 def main():
-    server_thread = threading.Thread(target=run_web_server)
-    server_thread.daemon = True
+    # تشغيل خادم الويب في الخلفية بشكل آمن ومستقر
+    server_thread = threading.Thread(target=run_web_server, daemon=True)
     server_thread.start()
+    print("🌐 خادم الويب الوهمي يعمل بانتظام على بورت Render.")
 
     application = ApplicationBuilder().token(TOKEN).build()
 
@@ -319,7 +320,8 @@ def main():
     application.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_link))
 
-    application.run_polling()
+    print("🤖 بوت الاستنساخ يعمل الآن باللون الروسي وبكفاءة تامة...")
+    application.run_polling(drop_pending_updates=True)
 
-if __name__ == 'main__':
+if __name__ == '__main__':
     main()
