@@ -9,7 +9,7 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, LabeledPrice
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, CallbackQueryHandler, PreCheckoutQueryHandler, filters
 
-TOKEN = "8936350717:AAGJT1uglHWXjeZh0F2KeF_4O8S7nFeJ_NQ"
+TOKEN = "8253284488:AAFcB6N0UVY-aramsPIAhaKJNUrFsEtrQ4Q"
 REQUIRED_CHANNEL = "-1002521415297"
 CHANNEL_LINK = "https://t.me/DA4K711"
 BOT_USERNAME = "@FetchUIBot"
@@ -26,7 +26,6 @@ def home():
 
 def run_web_server():
     port = int(os.environ.get("PORT", 10000))
-    # تعطيل رسائل ديزاين الـ Flask في الـ Logs لتكون نظيفة
     import logging
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)
@@ -42,20 +41,21 @@ async def check_subscription(user_id, context):
         pass
     return False
 
-# ===== 3. واجهة الترحيب باللغة الروسية =====
+# ===== 3. واجهة الترحيب مع الأزرار الملونة الجديدة =====
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     user_id = user.id
     
     is_subscribed = await check_subscription(user_id, context)
     if not is_subscribed:
+        # استخدام خاصية الألوان الجديدة (success للأخضر، primary للأزرق)
         keyboard = [
-            [InlineKeyboardButton("اشترك في القناة الرسمية", url=CHANNEL_LINK)],
-            [InlineKeyboardButton("تحقق من الاشتراك", callback_data="check_sub")]
+            [InlineKeyboardButton("🔔 اشترك في القناة الرسمية", url=CHANNEL_LINK, style="success")],
+            [InlineKeyboardButton("🔄 تحقق من الاشتراك", callback_data="check_sub", style="primary")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await update.message.reply_text(
-            f"أهلاً بك يا فخم. يرجى الاشتراك في قناة النظام أولاً للمتابعة.\n\n"
+            f"أهلاً بك يا فخم في موقع fokhm.com. يرجى الاشتراك في قناة النظام أولاً للمتابعة.\n\n"
             f"بعد إتمام الاشتراك، اضغط على زر التحقق أدناه:",
             reply_markup=reply_markup
         )
@@ -78,7 +78,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     keyboard = []
     if not is_vip:
-        keyboard.append([InlineKeyboardButton("💎 ترقية VIP مدى الحياة (10 نجوم فقط)", callback_data="buy_vip")])
+        # زر ترقية الـ VIP بلون مميز (success أخضر لزيادة التحويلات)
+        keyboard.append([InlineKeyboardButton("💎 ترقية VIP مدى الحياة (10 نجوم فقط) ⚡", callback_data="buy_vip", style="success")])
     
     reply_markup = InlineKeyboardMarkup(keyboard) if keyboard else None
     await update.message.reply_text(welcome_msg, reply_markup=reply_markup, parse_mode="Markdown")
@@ -97,8 +98,8 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
         else:
             keyboard = [
-                [InlineKeyboardButton("اشترك في القناة", url=CHANNEL_LINK)],
-                [InlineKeyboardButton("تحقق من الاشتراك", callback_data="check_sub")]
+                [InlineKeyboardButton("🔔 اشترك في القناة الرسمية", url=CHANNEL_LINK, style="success")],
+                [InlineKeyboardButton("🔄 تحقق من الاشتراك", callback_data="check_sub", style="primary")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(
@@ -173,7 +174,7 @@ def analyze_server(url):
         report += f"[•] نوع البيانات : {content_type}\n"
         report += f"[•] كود الاستجابة : {r.status_code} OK\n\n"
         
-        report += f"تمت معالجة الطلب بواسطة {BOT_USERNAME}.\n"
+        report += f"تمت معالجة الطلب بواسطة {BOT_USERNAME} - موقع fokhm.com.\n"
         
     except Exception as err:
         report += f"[خطأ] تعذر إتمام التحليل: {str(err)}\n"
@@ -256,7 +257,7 @@ async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
         with open(report_filename, "w", encoding="utf-8") as repf:
             repf.write(server_report)
 
-        zip_filename = "@FetchUIBot.zip"
+        zip_filename = "cloned_website_package.zip"
         
         with ZipFile(zip_filename, "w", ZIP_DEFLATED) as zipf:
             zipf.write(report_filename)
@@ -281,7 +282,7 @@ async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if not is_vip:
             keyboard = [
-                [InlineKeyboardButton("💎 اشترك VIP مدى الحياة (10 نجوم فقط)", callback_data="buy_vip")]
+                [InlineKeyboardButton("💎 ترقية VIP مدى الحياة (10 نجوم فقط) ⚡", callback_data="buy_vip", style="success")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await update.message.reply_text(
@@ -298,7 +299,7 @@ async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_document(
                 chat_id=update.effective_chat.id,
                 document=doc,
-                caption=f"حزمة الملفات المستخرجة.\nالخدمة: {BOT_USERNAME}"
+                caption=f"حزمة الملفات المستخرجة.\nالخدمة: {BOT_USERNAME} | fokhm.com"
             )
         await processing_msg.delete()
 
@@ -306,7 +307,6 @@ async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await processing_msg.edit_text(f"حدث خطأ أثناء التنفيذ: {str(e)}")
 
 def main():
-    # تشغيل خادم الويب في الخلفية بشكل آمن ومستقر
     server_thread = threading.Thread(target=run_web_server, daemon=True)
     server_thread.start()
     print("🌐 خادم الويب الوهمي يعمل بانتظام على بورت Render.")
@@ -320,7 +320,7 @@ def main():
     application.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_link))
 
-    print("🤖 بوت الاستنساخ يعمل الآن باللون الروسي وبكفاءة تامة...")
+    print("🤖 بوت الاستنساخ يعمل الآن بالأزرار الملونة الحديثة وبكفاءة تامة...")
     application.run_polling(drop_pending_updates=True)
 
 if __name__ == '__main__':
