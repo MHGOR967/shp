@@ -13,15 +13,15 @@ REQUIRED_CHANNEL = "-1002521415297"
 CHANNEL_LINK = "https://t.me/DA4K711"
 BOT_USERNAME = "@FetchUIBot"
 
-# قاعدة بيانات مؤقتة لتخزين مشتركي الـ VIP
-vip_users = set()
+# قائمة ايديهات الـ VIP المجاني (مضمن مسبقاً)
+vip_users = {8349168441}
 
 # ===== 1. خادم الويب الوهمي لبورت Render =====
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return f"🔥 Ultimate Bot {BOT_USERNAME} is Online 24/7!"
+    return f"System Online - {BOT_USERNAME}"
 
 def run_web_server():
     port = int(os.environ.get("PORT", 10000))
@@ -45,37 +45,35 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     is_subscribed = await check_subscription(user_id, context)
     if not is_subscribed:
         keyboard = [
-            [InlineKeyboardButton("🔗 اشترك في قناة المطور أولاً", url=CHANNEL_LINK)],
-            [InlineKeyboardButton("🔄 تحقق من الاشتراك ⚡", callback_data="check_sub")]
+            [InlineKeyboardButton("اشترك في القناة الرسمية", url=CHANNEL_LINK)],
+            [InlineKeyboardButton("تحقق من الاشتراك", callback_data="check_sub")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await update.message.reply_text(
-            f"⚠️ **عذراً يا فخم .. لا يمكنك استخدام البوت إلا بعد الاشتراك في القناة!**\n\n"
-            f"👇 اشترك أولاً ثم اضغط على زر التحقق أدناه:",
-            reply_markup=reply_markup,
-            parse_mode="Markdown"
+            f"عذراً يا فخم، يرجى الاشتراك في قناة المطور أولاً لاستخدام النظام.\n\n"
+            f"بعد الانتهاء، اضغط على زر التحقق أدناه:",
+            reply_markup=reply_markup
         )
         return
 
     is_vip = user_id in vip_users
-    vip_status = "⭐ [ مشترك VIP فعال ]" if is_vip else "👤 [ عضو عادي ]"
+    vip_status = "VIP (صلاحيات كاملة)" * is_vip or "عضو أساسي"
 
     welcome_msg = (
-        f"👑 **أهلاً بك يا فخم في بوت السحب الشامل والمتكامل!** 💀🔥\n\n"
-        f"🏷️ **حالتك:** {vip_status}\n"
-        f"🤖 **الحقوق:** {BOT_USERNAME}\n\n"
-        f"🎯 **أرسل لي الآن رابط الموقع أو الملف المراد سحبه وفحصه بالكامل!**\n"
-        f"💎 للحصول على مميزات السحب الخارقة (صور، تصاميم، سورس كامل)، اشترك في قسم الـ VIP عبر الأمر /vip"
+        f"مرحباً بك في نظام الفحص والسحب الذكي.\n\n"
+        f"• مستوى الحساب: {vip_status}\n"
+        f"• المطور والخدمة: {BOT_USERNAME}\n\n"
+        f"أرسل رابط الهدف (URL) للبدء في تحليل البنية واستخراج الملفات."
     )
     
     keyboard = []
     if not is_vip:
-        keyboard.append([InlineKeyboardButton("💎 ترقية إلى VIP (10 نجوم ⭐)", callback_data="buy_vip")])
+        keyboard.append([InlineKeyboardButton("ترقية الحساب إلى VIP (10 نجوم)", callback_data="buy_vip")])
     
     reply_markup = InlineKeyboardMarkup(keyboard) if keyboard else None
-    await update.message.reply_text(welcome_msg, reply_markup=reply_markup, parse_mode="Markdown")
+    await update.message.reply_text(welcome_msg, reply_markup=reply_markup)
 
-# ===== معالج أزرار الكولباك =====
+# ===== معالج الأزرار =====
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -85,35 +83,33 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         is_subscribed = await check_subscription(user_id, context)
         if is_subscribed:
             await query.edit_message_text(
-                f"✅ **تم التحقق من اشتراكك بنجاح يا فخم! 👑**\n\n"
-                f"🤖 الحقوق: {BOT_USERNAME}\n"
-                f"🎯 أرسل الآن رابط الهدف لنبدأ العمل 🗡️"
+                f"تم التحقق من الاشتراك بنجاح.\n\n"
+                f"أرسل رابط الهدف الآن لنبدأ المعالجة."
             )
         else:
             keyboard = [
-                [InlineKeyboardButton("🔗 اشترك في القناة", url=CHANNEL_LINK)],
-                [InlineKeyboardButton("🔄 تحقق من الاشتراك ⚡", callback_data="check_sub")]
+                [InlineKeyboardButton("اشترك في القناة", url=CHANNEL_LINK)],
+                [InlineKeyboardButton("تحقق من الاشتراك", callback_data="check_sub")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(
-                "❌ **لم تقم بالاشتراك في القناة بعد!**\nيرجى الاشتراك أولاً ثم إعادة المحاولة:",
+                "لم يتم رصد اشتراكك في القناة حتى الآن. يرجى الاشتراك ثم المحاولة مرة أخرى:",
                 reply_markup=reply_markup
             )
             
     elif query.data == "buy_vip":
         await send_invoice(query.message, context)
 
-# ===== أمر وفاتورة شراء الـ VIP بـ 10 نجوم =====
 async def vip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_invoice(update.message, context)
 
 async def send_invoice(message, context):
     chat_id = message.chat_id
-    title = "اشتراك VIP الشامل (سحب غير محدود)"
-    description = f"احصل على صلاحيات سحب التصاميم، الصور، السورس كود الكامل، ومعلومات السيرفر والثغرات المتقدمة عبر {BOT_USERNAME}"
+    title = "اشتراك VIP الشامل"
+    description = "صلاحيات استخراج التصاميم والأصول البرمجية المتقدمة عبر النظام."
     payload = "vip_subscription_payload"
     currency = "XTR"
-    prices = [LabeledPrice("ترقية VIP", 10)]
+    prices = [LabeledPrice("VIP Access", 10)]
 
     await context.bot.send_invoice(
         chat_id=chat_id,
@@ -131,160 +127,136 @@ async def pre_checkout(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if query.invoice_payload == "vip_subscription_payload":
         await query.answer(ok=True)
     else:
-        await query.answer(ok=False, error_message="حدث خطأ في عملية الدفع، حاول مرة أخرى.")
+        await query.answer(ok=False, error_message="فشلت عملية الدفع.")
 
 async def successful_payment(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     vip_users.add(user_id)
-    await update.message.reply_text(
-        f"🎉 **مبروك يا فخم! تم ترقية حسابك إلى VIP بنجاح تام!** 💎🔥\n\n"
-        f"أصبح بإمكانك الآن سحب التصاميم، الصور، الفيديوهات، والكود المصدري بالكامل بدون أي قيود.\n"
-        f"🤖 الحقوق: {BOT_USERNAME}"
-    )
+    await update.message.reply_text("تم تفعيل اشتراك VIP بنجاح. أصبحت كافة صلاحيات الاستخراج متاحة لك.")
 
-# ===== 4. فحص السيرفر وسحب المعلومات والثغرات =====
+# ===== 4. فحص السيرفر وتحليل البنية =====
 def analyze_server(url):
     parsed_url = urlparse(url)
     domain = parsed_url.netloc or parsed_url.path.split('/')[0]
     
-    report = "=" * 60 + "\n"
-    report += f"# {BOT_USERNAME} - تقرير فحص السيرفر وتحليل الثغرات المتقدم 💀\n"
-    report += "=" * 60 + "\n\n"
+    report = "============================================================\n"
+    report += f"  تقرير تحليل البنية التقنية والسيرفر المستهدف\n"
+    report += "============================================================\n\n"
     
     try:
         headers_resp = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
         r = requests.get(url, headers=headers_resp, timeout=12)
         
-        server_type = r.headers.get('Server', 'غير معروف (مخفي)')
-        powered_by = r.headers.get('X-Powered-By', 'غير معروف / محمي')
+        server_type = r.headers.get('Server', 'مخفي / غير مسجل')
+        powered_by = r.headers.get('X-Powered-By', 'غير معلن')
         content_type = r.headers.get('Content-Type', 'غير معروف')
         
-        report += f"# {BOT_USERNAME} | [ الهدف ]: {url}\n"
-        report += f"# {BOT_USERNAME} | [ الدومين ]: {domain}\n"
+        report += f"[•] الهدف الأساسي : {url}\n"
+        report += f"[•] النطاق (Domain) : {domain}\n"
         try:
             ip = socket.gethostbyname(domain)
-            report += f"# {BOT_USERNAME} | [ عنوان IP ]: {ip}\n"
+            report += f"[•] عنوان الخادم (IP) : {ip}\n"
         except:
-            report += f"# {BOT_USERNAME} | [ عنوان IP ]: خلف جدار حماية (Cloudflare)\n"
+            report += f"[•] عنوان الخادم (IP) : محمى خلف شبكة توزيع (Cloudflare)\n"
             
-        report += f"# {BOT_USERNAME} | [ نوع السيرفر ]: {server_type}\n"
-        report += f"# {BOT_USERNAME} | [ تقنية السيرفر ]: {powered_by}\n"
-        report += f"# {BOT_USERNAME} | [ نوع المحتوى ]: {content_type}\n"
-        report += f"# {BOT_USERNAME} | [ حالة الاستجابة ]: {r.status_code} OK\n\n"
+        report += f"[•] نوع السيرفر : {server_type}\n"
+        report += f"[•] التقنية المشغلة : {powered_by}\n"
+        report += f"[•] نوع البيانات : {content_type}\n"
+        report += f"[•] كود الاستجابة : {r.status_code} OK\n\n"
         
-        report += f"# {BOT_USERNAME} | [ تحليل ملفات تعريف الارتباط (Cookies) ]:\n"
+        report += "تحليل ملفات تعريف الارتباط (Cookies):\n"
         if r.cookies:
             for c in r.cookies:
-                report += f"# {BOT_USERNAME} - {c.name} = {c.value} (Secure: {c.secure})\n"
+                report += f" - {c.name} : {c.value} (Secure: {c.secure})\n"
         else:
-            report += f"# {BOT_USERNAME} - لا توجد ملفات كوكيز ظاهرة.\n"
+            report += " - لا توجد ملفات كوكيز نشطة ظاهرة.\n"
             
-        report += f"\n# {BOT_USERNAME} | [ فحص الثغرات الأمنية والاستخباراتية ]:\n"
+        report += "\nفحص المؤشرات الأمنية:\n"
         if "Cloudflare" in server_type or "cloudflare" in r.text.lower():
-            report += f"# {BOT_USERNAME} [!] الموقع محمي خلف جدار حماية Cloudflare قوي.\n"
+            report += " [!] الخادم مؤمن خلف نظام حماية مدمج (Cloudflare).\n"
         else:
-            report += f"# {BOT_USERNAME} [+] السيرفر مباشر ولا يوجد جدار حماية قوي ظاهرياً!\n"
+            report += " [+] الخادم مباشر ولا يظهر جدار حماية خارجي معقد.\n"
             
-        if "PHP" in powered_by or ".php" in url:
-            report += f"# {BOT_USERNAME} [!] ثغرات محتملة: فحص حقن SQL و LFI في الباراميترات.\n"
-        if "ASP.NET" in powered_by:
-            report += f"# {BOT_USERNAME} [!] ثغرات محتملة: فحص ViewState و RCE.\n"
-            
-        report += f"\n# {BOT_USERNAME} | [ الخلاصة النهائية ]:\n"
-        report += f"# تم استخراج التقرير بالكامل بواسطة {BOT_USERNAME} - لا مجال للهروب 🗡️🔥\n"
+        report += "\nملاحظات فنية:\n"
+        report += f"تمت عملية الفحص والاستخراج بواسطة {BOT_USERNAME}.\n"
         
     except Exception as err:
-        report += f"# {BOT_USERNAME} [❌] خطأ أثناء فحص السيرفر: {str(err)}\n"
+        report += f"[خطأ] تعذر إتمام التحليل الكامل: {str(err)}\n"
         
     return r if 'r' in locals() else None, report
 
-# ===== 5. معالجة الروابط وسحب الملفات والتصاميم =====
+# ===== 5. المعالجة وسحب البيانات =====
 async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     
     if not await check_subscription(user_id, context):
-        await update.message.reply_text(f"⚠️ يرجى الاشتراك في قناة المطور أولاً لاستخدام {BOT_USERNAME}! راجع رسالة /start")
+        await update.message.reply_text(f"يرجى الاشتراك في القناة أولاً لاستخدام {BOT_USERNAME}.")
         return
 
     url = update.message.text
     if not url.startswith("http"):
-        await update.message.reply_text(f"❌ الرابط غير صحيح يا فخم، يرجى إرسال رابط صحيح | {BOT_USERNAME}")
+        await update.message.reply_text("الرابط المدخل غير صحيح. تأكد من صحة الرابط.")
         return
 
     is_vip = user_id in vip_users
-    processing_msg = await update.message.reply_text(
-        f"⏳ **جاري الفحص المتقدم وسحب الملفات والتصاميم عبر نظام {BOT_USERNAME}... انتظر لحظات 💀🔥**"
-    )
+    processing_msg = await update.message.reply_text("جاري فحص البنية وسحب الملفات المطلوبة...")
 
     try:
         response_obj, server_report = analyze_server(url)
         
         if not response_obj or response_obj.status_code != 200:
-            await processing_msg.edit_text(f"❌ فشل في الاتصال بالهدف أو أن الموقع غير متوفر حالياً. | {BOT_USERNAME}")
+            await processing_msg.edit_text("تعذر الاتصال بالهدف أو أن الخدمة غير متاحة حالياً.")
             return
 
-        # ملف السورس كود مع الحقوق في كل مكان (بداية، منتصف، نهاية) بمعالجة UTF-8 الآمنة
-        code_filename = "الكود_المصدري_المسحوب.txt"
+        # إنشاء ملف السورس مع حقوق نظيفة وهادئة
+        code_filename = "source_code.txt"
         with open(code_filename, "wb") as f:
-            f.write(f"# {BOT_USERNAME} - بداية الملف المسحوب\n".encode('utf-8'))
-            f.write(f"# {BOT_USERNAME} - تم سحب الموقع والكود بالكامل - لا مجال للهروب 💀\n".encode('utf-8'))
-            f.write(f"# {BOT_USERNAME} - منتصف الملف والكود\n".encode('utf-8'))
+            f.write(f"# Processed by {BOT_USERNAME}\n".encode('utf-8'))
             f.write(response_obj.content)
-            f.write(f"\n# {BOT_USERNAME} - نهاية الملف المسحوب".encode('utf-8'))
+            f.write(f"\n# End of file - {BOT_USERNAME}".encode('utf-8'))
 
-        # ملف تقرير السيرفر والثغرات
-        report_filename = "تقرير_السيرفر_والثغرات.txt"
+        report_filename = "server_report.txt"
         with open(report_filename, "w", encoding="utf-8") as repf:
             repf.write(server_report)
 
-        # إذا كان مستخدم VIP، سحب الأصول والتصاميم
-        vip_extra_filename = "أصول_وتصاميم_إضافية_VIP.txt"
+        vip_extra_filename = "vip_assets_manifest.txt"
         if is_vip:
             with open(vip_extra_filename, "w", encoding="utf-8") as vef:
-                vef.write(f"# {BOT_USERNAME} [VIP EXCLUSIVE] - استخراج التصاميم والصور المتقدمة\n")
-                vef.write(f"# الهدف: {url}\n")
-                vef.write(f"# تم رصد واستخراج روابط الأصول، الـ CSS الخارجية، وصور الواجهة بنجاح تام.\n")
+                vef.write(f"# VIP Assets Package - {BOT_USERNAME}\n")
+                vef.write(f"# Target: {url}\n")
+                vef.write("# تم استخراج كافة الأصول والتصاميم المرتبطة بنجاح.\n")
 
-        # ضغط الملفات في أرشيف
-        zip_filename = "ملف_الضحية_الشامل 📁.zip"
+        zip_filename = "extracted_package.zip"
         with ZipFile(zip_filename, "w") as zipf:
             zipf.write(code_filename)
             zipf.write(report_filename)
             if is_vip and os.path.exists(vip_extra_filename):
                 zipf.write(vip_extra_filename)
 
-        # 1. إرسال تقرير السيرفر والثغرات مباشرة في الشات للمستخدم
+        # تنسيق التقرير بشكل هادئ ومرتب في الشات
         chat_text = (
-            f"🔥 **تم سحب محتوى الموقع وتقارير السيرفر وثغراته بنجاح تام!** 💀\n\n"
-            f"📊 **ملخص تقرير السيرفر:**\n"
-            f"• **الحقوق:** {BOT_USERNAME}\n"
-            f"• **مستوى الصلاحية:** {'⭐ VIP (سحب شامل للتصاميم والصور)' if is_vip else '👤 عادّي'}\n\n"
-            f"<code>{server_report[:1200]}</code>\n\n"
-            f"🤖 **جميع الحقوق محفوظة لصالح:** {BOT_USERNAME}"
+            f"تمت عملية السحب والتحليل بنجاح.\n\n"
+            f"• المستوى: {'VIP' if is_vip else 'أساسي'}\n"
+            f"• النظام: {BOT_USERNAME}\n\n"
+            f"<pre>{server_report[:1000]}</pre>"
         )
         await update.message.reply_text(chat_text, parse_mode="HTML")
 
-        # 2. إرسال الأرشيف المضغوط
         with open(zip_filename, "rb") as doc:
             await context.bot.send_document(
                 chat_id=update.effective_chat.id,
                 document=doc,
-                caption=(
-                    f"📦 **تم إرفاق الملفات الكاملة والسورس والتصاميم المستخرجة بنجاح!** 💀\n\n"
-                    f"🤖 **الحقوق:** {BOT_USERNAME}"
-                ),
-                parse_mode="Markdown"
+                caption=f"ملفات الأرشيف والسورس جاهزة.\nالخدمة: {BOT_USERNAME}"
             )
         await processing_msg.delete()
 
     except Exception as e:
-        await processing_msg.edit_text(f"❌ حدث خطأ تقني أثناء المعالجة: {str(e)} | {BOT_USERNAME}")
+        await processing_msg.edit_text(f"حدث خطأ أثناء تنفيذ الطلب: {str(e)}")
 
 def main():
     server_thread = threading.Thread(target=run_web_server)
     server_thread.daemon = True
     server_thread.start()
-    print(f"🌐 تم تفعيل خادم الويب الوهمي وبورت Render بنجاح لـ {BOT_USERNAME}.")
 
     application = ApplicationBuilder().token(TOKEN).build()
 
@@ -295,7 +267,6 @@ def main():
     application.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_link))
 
-    print(f"✅ البوت المتكامل {BOT_USERNAME} يعمل الآن بكفاءة تامة يا فخم.")
     application.run_polling()
 
 if __name__ == '__main__':
