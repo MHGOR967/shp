@@ -9,7 +9,7 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, LabeledPrice
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, CallbackQueryHandler, PreCheckoutQueryHandler, filters
 
-TOKEN = "8936350717:AAGJT1uglHWXjeZh0F2KeF_4O8S7nFeJ_NQ"
+TOKEN = "8253284488:AAFcB6N0UVY-aramsPIAhaKJNUrFsEtrQ4Q"
 REQUIRED_CHANNEL = "-1002521415297"
 CHANNEL_LINK = "https://t.me/DA4K711"
 BOT_USERNAME = "@FetchUIBot"
@@ -38,7 +38,7 @@ async def check_subscription(user_id, context):
         pass
     return False
 
-# ===== 3. واجهة الترحيب =====
+# ===== 3. واجهة الترحيب المعدلة والمطورة =====
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     user_id = user.id
@@ -61,10 +61,18 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     vip_status = "VIP (اشتراك مدى الحياة - استنساخ شامل)" * is_vip or "عضو أساسي"
 
     welcome_msg = (
-        f"مرحباً بك في محرك النسخ والاستنساخ الشامل.\n\n"
-        f"• مستوى الحساب: {vip_status}\n"
-        f"• الخدمة: {BOT_USERNAME}\n\n"
-        f"أرسل رابط الهدف (URL) وسيقوم النظام بسحب الموقع وتجهيزه لك."
+        f"🌐 **مرحباً بك في محرك الاستنساخ والتحليل الذكي للمواقع 🚀**\n\n"
+        f"استخراج وسحب كامل للسكربتات، الستايلات، الصور، والمسارات بدقة متناهية 💎 حزمة جاهزة للرفع الفوري على استضافتك بكل سهولة وأمان 🌐\n\n"
+        f"──────────────────\n"
+        f"• **مستوى الحساب:** {vip_status}\n"
+        f"• **الخدمة:** {BOT_USERNAME}\n"
+        f"• **موقعك الرسمي:** fokhm.com\n"
+        f"──────────────────\n\n"
+        f"❓ **ماذا يمكن عمل هذا البوت؟**\n"
+        f"1️⃣ **استنساخ المواقع:** سحب HTML, CSS, JS والأصول بدقة وتنسيق المسارات.\n"
+        f"2️⃣ **فحص السيرفر والتحليل:** رصد البنية التقنية وثغرات الأمان.\n"
+        f"3️⃣ **حزمة جاهزة للرفع:** تجميع الملفات بضغط ZIP لنظام 'نسخ ولصق'.\n\n"
+        f"🎯 **أرسل رابط الهدف (URL) الآن لنبدأ المعالجة ⚡**"
     )
     
     keyboard = []
@@ -72,7 +80,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard.append([InlineKeyboardButton("💎 ترقية VIP مدى الحياة (10 نجوم فقط)", callback_data="buy_vip")])
     
     reply_markup = InlineKeyboardMarkup(keyboard) if keyboard else None
-    await update.message.reply_text(welcome_msg, reply_markup=reply_markup)
+    await update.message.reply_text(welcome_msg, reply_markup=reply_markup, parse_mode="Markdown")
 
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -283,7 +291,8 @@ async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "📥 تم إرسال النسخة الأساسية الخاصة بك.\n\n"
                 "🔥 **احصل على استنساخ كامل سكربت، وستايل، وصور، وجميع المسارات وجاهز للرفع على استضافتك مباشرة!**\n"
                 "💎 اشتراك VIP مدى الحياة بـ 10 نجوم فقط، اضغط على الزر أدناه للترقية:",
-                reply_markup=reply_markup
+                reply_markup=reply_markup,
+                parse_mode="Markdown"
             )
         else:
             await update.message.reply_text("⭐ تم استنساخ الموقع بالكامل مع الأصول والمسارات المتناسقة بنجاح لحساب الـ VIP الخاص بك.")
