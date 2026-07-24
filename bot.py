@@ -5,7 +5,7 @@ import socket
 from urllib.parse import urlparse, urljoin
 from bs4 import BeautifulSoup
 from flask import Flask
-from zipfile import ZipFile
+from zipfile import ZipFile, ZIP_DEFLATED
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, LabeledPrice
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, CallbackQueryHandler, PreCheckoutQueryHandler, filters
 
@@ -22,7 +22,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return f"Smart Crawler System Online - {BOT_USERNAME}"
+    return f"True Cloner Engine Online - {BOT_USERNAME}"
 
 def run_web_server():
     port = int(os.environ.get("PORT", 10000))
@@ -58,13 +58,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     is_vip = user_id in vip_users
-    vip_status = "VIP (صلاحيات الزحف والسحب الكامل)" * is_vip or "عضو أساسي"
+    vip_status = "VIP (استنساخ شامل للملفات والأصول)" * is_vip or "عضو أساسي"
 
     welcome_msg = (
-        f"مرحباً بك في نظام السحب والتحليل الذكي.\n\n"
+        f"مرحباً بك في محرك النسخ والاستنساخ الشامل.\n\n"
         f"• مستوى الحساب: {vip_status}\n"
         f"• الخدمة: {BOT_USERNAME}\n\n"
-        f"أرسل رابط الهدف (URL) وسيقوم النظام بتحليله بالكامل."
+        f"أرسل رابط الهدف (URL) وسيقوم النظام بسحب الموقع بجميع ملفاته وتصاميمه بمساراتها المتناسقة."
     )
     
     keyboard = []
@@ -84,7 +84,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if is_subscribed:
             await query.edit_message_text(
                 f"تم التحقق بنجاح.\n\n"
-                f"أرسل رابط الهدف الآن لنبدأ عمليات الاستخراج."
+                f"أرسل رابط الهدف الآن لنبدأ الاستنساخ الكامل."
             )
         else:
             keyboard = [
@@ -105,8 +105,8 @@ async def vip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def send_invoice(message, context):
     chat_id = message.chat_id
-    title = "اشتراك VIP الشامل (الزحف المتقدم)"
-    description = "صلاحيات سحب وتحليل كافة الأصول، الصور، والسكربتات الخارجية للمواقع المستهدفة."
+    title = "اشتراك VIP الشامل (الاستنساخ الفعلي)"
+    description = "صلاحيات تحميل وسحب الصور، الستايلات، والسكربتات الحقيقية مع تعديل المسارات."
     payload = "vip_subscription_payload"
     currency = "XTR"
     prices = [LabeledPrice("VIP Access", 10)]
@@ -132,7 +132,7 @@ async def pre_checkout(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def successful_payment(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     vip_users.add(user_id)
-    await update.message.reply_text("تم تفعيل اشتراك VIP بنجاح. استمتع بكافة صلاحيات السحب والاستخراج المطلقة.")
+    await update.message.reply_text("تم تفعيل اشتراك VIP بنجاح. استمتع بمحرك الاستنساخ الكامل غير المحدود.")
 
 # ===== 4. فحص السيرفر وتحليل البنية =====
 def analyze_server(url):
@@ -164,7 +164,6 @@ def analyze_server(url):
         report += f"[•] نوع البيانات : {content_type}\n"
         report += f"[•] كود الاستجابة : {r.status_code} OK\n\n"
         
-        report += "ملاحظات الفحص والاستخبارات:\n"
         report += f"تمت معالجة الطلب بواسطة {BOT_USERNAME}.\n"
         
     except Exception as err:
@@ -172,37 +171,59 @@ def analyze_server(url):
         
     return r if 'r' in locals() else None, report
 
-# ===== 5. محرك الزحف الذكي للـ VIP (سحب الصور والستايلات والسكربتات) =====
-def smart_crawler(url, html_content):
+# ===== 5. محرك الاستنساخ الفعلي وتحميل الملفات وتعديل المسارات =====
+def clone_website(base_url, html_content):
     soup = BeautifulSoup(html_content, 'html.parser')
-    assets = {
-        "images": set(),
-        "stylesheets": set(),
-        "scripts": set()
-    }
+    downloaded_assets = {} # مسار محلي -> محتوى بايتات
     
-    # استخراج الصور
-    for img in soup.find_all('img'):
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+
+    # 1. معالجة الصور
+    for idx, img in enumerate(soup.find_all('img')):
         src = img.get('src') or img.get('data-src')
         if src:
-            assets["images"].add(urljoin(url, src))
-            
-    # استخراج ملفات الستايل CSS
-    for link in soup.find_all('link'):
+            absolute_url = urljoin(base_url, src)
+            ext = os.path.splitext(urlparse(absolute_url).path)[1] or '.png'
+            local_path = f"assets/images/img_{idx}{ext}"
+            try:
+                img_data = requests.get(absolute_url, headers=headers, timeout=5).content
+                downloaded_assets[local_path] = img_data
+                img['src'] = local_path # تعديل المسار في HTML ليكون محلياً
+                if img.get('data-src'):
+                    img['data-src'] = local_path
+            except:
+                pass
+
+    # 2. معالجة ملفات الـ CSS (الستايلات)
+    for idx, link in enumerate(soup.find_all('link')):
         if 'stylesheet' in link.get('rel', []):
             href = link.get('href')
             if href:
-                assets["stylesheets"].add(urljoin(url, href))
-                
-    # استخراج السكربتات JS الخارجية
-    for script in soup.find_all('script'):
+                absolute_url = urljoin(base_url, href)
+                local_path = f"assets/css/style_{idx}.css"
+                try:
+                    css_data = requests.get(absolute_url, headers=headers, timeout=5).content
+                    downloaded_assets[local_path] = css_data
+                    link['href'] = local_path
+                except:
+                    pass
+
+    # 3. معالجة السكربتات JS الخارجية
+    for idx, script in enumerate(soup.find_all('script')):
         src = script.get('src')
         if src:
-            assets["scripts"].add(urljoin(url, src))
-            
-    return assets
+            absolute_url = urljoin(base_url, src)
+            local_path = f"assets/js/script_{idx}.js"
+            try:
+                js_data = requests.get(absolute_url, headers=headers, timeout=5).content
+                downloaded_assets[local_path] = js_data
+                script['src'] = local_path
+            except:
+                pass
 
-# ===== 6. معالجة الروابط وتنفيذ الجرف =====
+    return str(soup), downloaded_assets
+
+# ===== 6. معالجة الروابط وتغليف المشروع =====
 async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     
@@ -216,7 +237,7 @@ async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     is_vip = user_id in vip_users
-    processing_msg = await update.message.reply_text("جاري فحص الصفحة، تحليل الكود، والبدء في استخراج الأصول...")
+    processing_msg = await update.message.reply_text("جاري استنساخ الموقع بالكامل، تحميل الصور والستايلات والسكربتات، وتنسيق المسارات...")
 
     try:
         response_obj, server_report = analyze_server(url)
@@ -225,67 +246,57 @@ async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await processing_msg.edit_text("تعذر الاتصال بالهدف أو أن الصفحة غير متاحة.")
             return
 
-        # حفظ الكود المصدري الأساسي
-        code_filename = "source_code.txt"
-        with open(code_filename, "wb") as f:
-            f.write(f"# Processed by {BOT_USERNAME}\n".encode('utf-8'))
-            f.write(response_obj.content)
-
         report_filename = "server_report.txt"
         with open(report_filename, "w", encoding="utf-8") as repf:
             repf.write(server_report)
 
-        # ملف لتخزين روابط الأصول المستخرجة العادية
-        assets_filename = "extracted_assets_list.txt"
+        zip_filename = "cloned_website_package.zip"
         
-        # إذا كان مستخدم VIP، نقوم بالزحف الذكي واستخراج كافة الروابط والملفات الخارجية
-        if is_vip:
-            crawled_data = smart_crawler(url, response_obj.text)
-            with open(assets_filename, "w", encoding="utf-8") as af:
-                af.write(f"=== VIP SMART CRAWLER MANIFEST - {BOT_USERNAME} ===\n")
-                af.write(f"Target URL: {url}\n\n")
-                
-                af.write(f"[+] Images Found ({len(crawled_data['images'])}):\n")
-                for img_url in crawled_data['images']:
-                    af.write(f"  - {img_url}\n")
-                    
-                af.write(f"\n[+] Stylesheets Found ({len(crawled_data['stylesheets'])}):\n")
-                for css_url in crawled_data['stylesheets']:
-                    af.write(f"  - {css_url}\n")
-                    
-                af.write(f"\n[+] Scripts Found ({len(crawled_data['scripts'])}):\n")
-                for js_url in crawled_data['scripts']:
-                    af.write(f"  - {js_url}\n")
-        else:
-            with open(assets_filename, "w", encoding="utf-8") as af:
-                af.write("ترقية الحساب إلى VIP مطلوبة لاستخدام محرك الزحف الذكي واستخراج الأصول والتصاميم بالكامل.\n")
-
-        zip_filename = "extracted_package.zip"
-        with ZipFile(zip_filename, "w") as zipf:
-            zipf.write(code_filename)
+        # بناء الأرشيف المضغوط
+        with ZipFile(zip_filename, "w", ZIP_DEFLATED) as zipf:
             zipf.write(report_filename)
-            if os.path.exists(assets_filename):
-                zipf.write(assets_filename)
+            
+            if is_vip:
+                # تشغيل محرك الاستنساخ الشامل للـ VIP
+                cloned_html, assets = clone_website(url, response_obj.text)
+                
+                # حفظ صفحة الـ HTML المعدلة
+                html_filename = "index.html"
+                with open(html_filename, "w", encoding="utf-8") as hf:
+                    hf.write(f"<!-- Cloned & Processed by {BOT_USERNAME} -->\n")
+                    hf.write(cloned_html)
+                zipf.write(html_filename)
+                
+                # إضافة كافة الأصول المحملة بمساراتها المتناسقة داخل الأرشيف
+                for path, data in assets.items():
+                    zipf.writestr(path, data)
+            else:
+                # العضو العادي يسحب HTML فقط بدون جرف الأصول
+                html_filename = "index.html"
+                with open(html_filename, "wb") as hf:
+                    hf.write(f"<!-- Basic version by {BOT_USERNAME} -->\n".encode('utf-8'))
+                    hf.write(response_obj.content)
+                zipf.write(html_filename)
 
-        # إرسال تقرير موجز في الشات
+        # تقرير الشات
         chat_text = (
-            f"تمت عملية التحليل واستخراج الأصول بنجاح.\n\n"
-            f"• الصلاحية: {'⭐ VIP (محرك زحف نشط)' if is_vip else '👤 أساسي'}\n"
+            f"تم استنساخ الموقع وتجهيز حزمة النشر بنجاح.\n\n"
+            f"• المستوى: {'⭐ VIP (استنساخ فعلي للملفات والمسارات)' if is_vip else '👤 أساسي (HTML فقط)'}\n"
             f"• النظام: {BOT_USERNAME}\n\n"
-            f"<pre>{server_report[:800]}</pre>"
+            f"الملف جاهز للرفع المباشر على أي استضافة (رفع وفك الضغط ويعمل فوراً)."
         )
-        await update.message.reply_text(chat_text, parse_mode="HTML")
+        await update.message.reply_text(chat_text)
 
         with open(zip_filename, "rb") as doc:
             await context.bot.send_document(
                 chat_id=update.effective_chat.id,
                 document=doc,
-                caption=f"ملف الأرشيف الكامل متضمن السورس والأصول جاهز.\nالخدمة: {BOT_USERNAME}"
+                caption=f"حزمة الموقع المستسخ متضمنة index.html ومجلدات assets بالمسارات الصحيحة.\nالخدمة: {BOT_USERNAME}"
             )
         await processing_msg.delete()
 
     except Exception as e:
-        await processing_msg.edit_text(f"حدث خطأ أثناء تنفيذ عملية الاستخراج: {str(e)}")
+        await processing_msg.edit_text(f"حدث خطأ أثناء عملية الاستنساخ: {str(e)}")
 
 def main():
     server_thread = threading.Thread(target=run_web_server)
