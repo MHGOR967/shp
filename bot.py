@@ -10,7 +10,7 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, LabeledPrice
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, CallbackQueryHandler, PreCheckoutQueryHandler, filters
 
-TOKEN = "8936350717:AAGJT1uglHWXjeZh0F2KeF_4O8S7nFeJ_NQ"
+TOKEN = "8936350717:AAExEg64YdCLV7pZOxnbTl6vRPbSV6E5rr4"
 REQUIRED_CHANNEL = "-1002521415297"
 CHANNEL_LINK = "https://t.me/DA4K711"
 BOT_USERNAME = "@FetchUIBot"
